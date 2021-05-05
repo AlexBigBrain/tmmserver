@@ -5,7 +5,6 @@ const { SearchWords, IncreaseCounterWord, ParolaRequest } = require('./controlle
 const router = express.Router();
 
 router.get('', async (req, res) => {
-    console.log(req.query.word.toUpperCase());
     const result = await ParolaRequest(req.query.word.toUpperCase());
     if (result.length === 0) {
         res.json({
