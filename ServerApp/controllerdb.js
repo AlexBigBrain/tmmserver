@@ -1,9 +1,9 @@
 const pool = require('./db');
 const { Observable } = require('rxjs');
 
-async function getGeneralWord(Word) {
+async function getSpecificWords(Word) {
     try {
-        const [result,] = await pool.query('SELECT `generalWord` FROM `Words` WHERE `specificWord` = ?;', [Word]);
+        const [result,] = await pool.query('SELECT `specificWord` FROM `Words` WHERE `generalWord` = ?;', [Word]);
         return result;
     }
     catch {
@@ -51,9 +51,9 @@ async function getExamples(descriptionID) {
     }
 }
 
-async function getSinonims(descriptionID) {
+async function getSinonims(Word) {
     try {
-        const [result,] = await pool.query('SELECT `Sinonims`.`SI_descriptionID_B_fk` as Sinonims FROM `Sinonims` WHERE `SI_descriptionID_A_fk` = ? UNION SELECT `Sinonims`.`SI_descriptionID_A_fk` FROM `Sinonims` WHERE `SI_descriptionID_B_fk` = ?;', [descriptionID, descriptionID]);
+        const [result,] = await pool.query('SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ?;', [Word, Word]);
         return result;
     }
     catch {
@@ -61,9 +61,9 @@ async function getSinonims(descriptionID) {
     }
 }
 
-async function getTranslationsEN(descriptionID) {
+async function getTranslationsEN(Word) {
     try {
-        const [result,] = await pool.query('SELECT `Translations`.`TR_descriptionID_EN_fk` as Translations FROM `Translations` WHERE `TR_descriptionID_IT_fk` = ?;', [descriptionID]);
+        const [result,] = await pool.query('SELECT `Translations`.`TR_wordEN_fk` as Translations FROM `Translations` WHERE `TR_wordIT_fk` = ?;', [Word]);
         return result;
     }
     catch {
@@ -71,9 +71,9 @@ async function getTranslationsEN(descriptionID) {
     }
 }
 
-async function getTranslationsIT(descriptionID) {
+async function getTranslationsIT(Word) {
     try {
-        const [result,] = await pool.query('SELECT `Translations`.`TR_descriptionID_IT_fk` as Translations FROM `Translations` WHERE `TR_descriptionID_EN_fk` = ?;', [descriptionID]);
+        const [result,] = await pool.query('SELECT `Translations`.`TR_wordIT_fk` as Translations FROM `Translations` WHERE `TR_wordEN_fk` = ?;', [Word]);
         return result;
     }
     catch {
@@ -82,18 +82,26 @@ async function getTranslationsIT(descriptionID) {
 }
 
 async function ParolaRequest(GeneralWord) {
-    const GeneralWords = await getGeneralWord(GeneralWord);
+    const SpecificWordsArr = await getSpecificWords(GeneralWord);
     console.log('Parole trovate:');
-    console.log(GeneralWords);
+    console.log(SpecificWordsArr);
     console.log('Parola: ' + GeneralWord);
     // Si utilizza 'Promise.all' perché 'ParoleTrovate.map()' restituisce una lista di Promises,
     // quindi per aspettare che vengano risolte tutte, bisogna utilizzare Promise.all
-    return await Promise.all(GeneralWords.map(async (GeneralWord) => {
-        const specificWords = await getSpecificWord(GeneralWord.generalWord);
-        const Descriptions = await getDescriptions(GeneralWord.generalWord);
-        const Sinonims = await getSinonims(specificWords.specificWord);
-        const TranslasionsIT = await getTranslationsIT(specificWords.specificWord);
-        const TranslasionsEN = await getTranslationsEN(specificWords.specificWord);
+    return await Promise.all(SpecificWordsArr.map(async (SpecificWords) => {
+        console.log(SpecificWords);
+        const SpecificWord = SpecificWords.specificWord;
+
+        const specificWords = await getSpecificWord(SpecificWord);
+        const Descriptions = await getDescriptions(SpecificWord);
+        const resSinonims = await getSinonims(SpecificWord);
+        const resTranslasionsIT = await getTranslationsIT(SpecificWord);
+        const resTranslasionsEN = await getTranslationsEN(SpecificWord);
+
+        const Sinonims = await Promise.all(resSinonims.map(async (Sinonim) => Sinonim.Sinonims));
+        const TranslasionsEN = await Promise.all(resTranslasionsEN.map(async (Translation) => Translation.Translations));
+        const TranslasionsIT = await Promise.all(resTranslasionsIT.map(async (Translation) => Translation.Translations));
+
         const Examples = [];
         await Promise.all(Descriptions.map(async (Description) => {
             const resultExample = await getExamples(Description.descriptionID);
