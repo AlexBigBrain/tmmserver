@@ -49,7 +49,7 @@ async function getLingueParola(Parola) {
 }
 async function getEsempiIT(Parola) {
     try {
-        const [result,] = await pool.query('SELECT `Example`,`LangExample` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'IT\';', [Parola]);
+        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `idDescription` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'IT\';', [Parola]);
         return result;
     }
     catch {
@@ -58,7 +58,7 @@ async function getEsempiIT(Parola) {
 }
 async function getEsempiEN(Parola) {
     try {
-        const [result,] = await pool.query('SELECT `Example`,`LangExample` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'EN\';', [Parola]);
+        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `idDescription` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'EN\';', [Parola]);
         return result;
     }
     catch {
