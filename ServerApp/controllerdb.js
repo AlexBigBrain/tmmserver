@@ -91,24 +91,14 @@ async function ParolaRequest(GeneralWord) {
     return await Promise.all(GeneralWords.map(async (GeneralWord) => {
         const specificWords = await getSpecificWord(GeneralWord.generalWord);
         const Descriptions = await getDescriptions(GeneralWord.generalWord);
+        const Sinonims = await getSinonims(specificWords.specificWord);
+        const TranslasionsIT = await getTranslationsIT(specificWords.specificWord);
+        const TranslasionsEN = await getTranslationsEN(specificWords.specificWord);
         const Examples = [];
-        const Sinonims = [];
-        const TranslasionsIT = [];
-        const TranslasionsEN = [];
         await Promise.all(Descriptions.map(async (Description) => {
             const resultExample = await getExamples(Description.descriptionID);
-            const resultSinonim = await getSinonims(Description.descriptionID);
-            const resultTraslationEN = await getTranslationsEN(Description.descriptionID);
-            const resultTraslationIT = await getTranslationsIT(Description.descriptionID);
-
             if (resultExample.length !== 0)
                 Examples.push(resultExample[0]);
-            if (resultSinonim.length !== 0)
-                Sinonims.push(resultSinonim[0]);
-            if (resultTraslationEN.length !== 0)
-                TranslasionsEN.push(resultTraslationEN[0]);
-            if (resultTraslationIT.length !== 0)
-                TranslasionsIT.push(resultTraslationIT[0]);
         }));
         return {
             "Word": specificWords,
