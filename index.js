@@ -12,7 +12,10 @@ app.use('/api', router);
 */
 
 app.get('/', async (req, res) => {
-    res.sendFile(path.join(__dirname, 'page.html'));
+    res.json({
+        "data": "porcoddio",
+        "ciao": "semplicementeCiao"
+    });
 });
-
-app.listen(4000, () => console.log('listening on port 4000'));
+const port = process.env.PORT || 4000
+app.listen(port, () => console.log('listening on port ' + port));
