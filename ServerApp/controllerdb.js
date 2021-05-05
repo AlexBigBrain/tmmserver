@@ -1,27 +1,9 @@
 const pool = require('./db');
 const { Observable } = require('rxjs');
 
-async function getParole(Parola) {
+async function getGeneralWord(Word) {
     try {
-        const [result,] = await pool.query('SELECT `generalWord` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
-}
-async function getParolaSPE(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT * FROM `Words` WHERE `specificWord` = ?;', [Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
-}
-async function getDescrizioniIT(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? and `LangDesc` LIKE \'%IT%\';', [Parola]);
+        const [result,] = await pool.query('SELECT `generalWord` FROM `Words` WHERE `specificWord` = ?;', [Word]);
         return result;
     }
     catch {
@@ -29,63 +11,39 @@ async function getDescrizioniIT(Parola) {
     }
 }
 
-async function getDescrizioniEN(Parola) {
+async function getSpecificWord(Word) {
     try {
-        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? and `LangDesc` LIKE \'%EN%\';', [Parola]);
+        const [result,] = await pool.query('SELECT * FROM `Words` WHERE `specificWord` = ?;', [Word]);
         return result;
     }
     catch {
         return [];
     }
 }
+
+async function getDescriptions(Word) {
+    try {
+        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? ORDER BY `descriptionID`;', [Word]);
+        return result;
+    }
+    catch {
+        return [];
+    }
+}
+/*
 async function getLingueParola(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT `Language` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
+   try {
+       const [result,] = await pool.query('SELECT `Language` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
+       return result;
+   }
+   catch {
+       return [];
+   }
 }
-async function getEsempiIT(Parola) {
+*/
+async function getExamples(descriptionID) {
     try {
-        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `idDescription` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'IT\';', [Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
-}
-async function getEsempiEN(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `idDescription` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'EN\';', [Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
-}
-async function getSinonimi(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ?;', [Parola, Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
-}
-async function getTraduzioniEN(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT `Translations`.`TR_wordEN_fk` as Translations FROM `Translations` WHERE `TR_wordIT_fk` = ?;', [Parola]);
-        return result;
-    }
-    catch {
-        return [];
-    }
-}
-async function getTraduzioniIT(Parola) {
-    try {
-        const [result,] = await pool.query('SELECT `Translations`.`TR_wordIT_fk` as Translations FROM `Translations` WHERE `TR_wordEN_fk` = ?;', [Parola]);
+        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `descriptionID` FROM `Examples` WHERE `descriptionID` = ? ORDER BY `descriptionID`;', [descriptionID]);
         return result;
     }
     catch {
@@ -93,37 +51,76 @@ async function getTraduzioniIT(Parola) {
     }
 }
 
-async function ParolaRequest_IT(Parola) {
-    const ParoleTrovate = await getParole(Parola);
+async function getSinonims(descriptionID) {
+    try {
+        const [result,] = await pool.query('SELECT `Sinonims`.`SI_descriptionID_B_fk` as Sinonims FROM `Sinonims` WHERE `SI_descriptionID_A_fk` = ? UNION SELECT `Sinonims`.`SI_descriptionID_A_fk` FROM `Sinonims` WHERE `SI_descriptionID_B_fk` = ?;', [descriptionID, descriptionID]);
+        return result;
+    }
+    catch {
+        return [];
+    }
+}
+
+async function getTranslationsEN(descriptionID) {
+    try {
+        const [result,] = await pool.query('SELECT `Translations`.`TR_descriptionID_EN_fk` as Translations FROM `Translations` WHERE `TR_descriptionID_IT_fk` = ?;', [descriptionID]);
+        return result;
+    }
+    catch {
+        return [];
+    }
+}
+
+async function getTranslationsIT(descriptionID) {
+    try {
+        const [result,] = await pool.query('SELECT `Translations`.`TR_descriptionID_IT_fk` as Translations FROM `Translations` WHERE `TR_descriptionID_EN_fk` = ?;', [descriptionID]);
+        return result;
+    }
+    catch {
+        return [];
+    }
+}
+
+async function ParolaRequest(GeneralWord) {
+    const GeneralWords = await getGeneralWord(GeneralWord);
     console.log('Parole trovate:');
-    console.log(ParoleTrovate);
-    console.log('Parola: ' + Parola);
+    console.log(GeneralWords);
+    console.log('Parola: ' + GeneralWord);
     // Si utilizza 'Promise.all' perché 'ParoleTrovate.map()' restituisce una lista di Promises,
     // quindi per aspettare che vengano risolte tutte, bisogna utilizzare Promise.all
-    return await Promise.all(ParoleTrovate.map(async (Parola) => {
+    return await Promise.all(GeneralWords.map(async (GeneralWord) => {
+        const specificWords = await getSpecificWord(GeneralWord.generalWord);
+        const Descriptions = await getDescriptions(GeneralWord.generalWord);
+        const Examples = [];
+        const Sinonims = [];
+        const TranslasionsIT = [];
+        const TranslasionsEN = [];
+        await Promise.all(Descriptions.map(async (Description) => {
+            const resultExample = await getExamples(Description.descriptionID);
+            const resultSinonim = await getSinonims(Description.descriptionID);
+            const resultTraslationEN = await getTranslationsEN(Description.descriptionID);
+            const resultTraslationIT = await getTranslationsIT(Description.descriptionID);
+
+            if (resultExample.length !== 0)
+                Examples.push(resultExample[0]);
+            if (resultSinonim.length !== 0)
+                Sinonims.push(resultSinonim[0]);
+            if (resultTraslationEN.length !== 0)
+                TranslasionsEN.push(resultTraslationEN[0]);
+            if (resultTraslationIT.length !== 0)
+                TranslasionsIT.push(resultTraslationIT[0]);
+        }));
         return {
-            "Word": (await getParolaSPE(Parola.generalWord)),
-            "Descriptions": (await getDescrizioniIT(Parola.generalWord)),
-            "Examples": (await getEsempiIT(Parola.generalWord)),
-            "Sinonims": (await getSinonimi(Parola.generalWord)),
-            "Translations": (await getTraduzioniEN(Parola.generalWord))
+            "Word": specificWords,
+            "Descriptions": Descriptions,
+            "Examples": Examples,
+            "Sinonims": Sinonims,
+            "TranslasionsIT": TranslasionsIT,
+            "TranslasionsEN": TranslasionsEN
         };
     }));
 }
 
-async function ParolaRequest_EN(Parola) {
-    const ParoleTrovate = await getParole(Parola);
-    console.log(ParoleTrovate);
-    return await Promise.all(ParoleTrovate.map(async (Parola) => {
-        return {
-            "Word": (await getParolaSPE(Parola.generalWord)),
-            "Descriptions": (await getDescrizioniEN(Parola.generalWord)),
-            "Examples": (await getEsempiEN(Parola.generalWord)),
-            "Sinonims": (await getSinonimi(Parola.generalWord)),
-            "Translations": (await getTraduzioniIT(Parola.generalWord))
-        };
-    }));
-}
 
 async function IncreaseCounterWord(Word) {
     try {
@@ -154,8 +151,7 @@ async function SearchWords(Word) {
 
 
 module.exports = {
-    ParolaRequest_IT,
-    ParolaRequest_EN,
+    ParolaRequest,
     SearchWords,
     IncreaseCounterWord
 };

@@ -1,13 +1,24 @@
 const express = require('express');
-const routerIT = require('./routers/ITrouter');
-const routerEN = require('./routers/ENrouter');
 var cors = require('cors')
-const { SearchWords, IncreaseCounterWord } = require('./controllerdb');
+const { SearchWords, IncreaseCounterWord, ParolaRequest } = require('./controllerdb');
 
 const router = express.Router();
 
-router.use('/IT', routerIT);
-router.use('/EN', routerEN);
+router.get('', async (req, res) => {
+    console.log(req.query.word.toUpperCase());
+    const result = await ParolaRequest(req.query.word.toUpperCase());
+    if (result.length === 0) {
+        res.json({
+            "data": result,
+            "status": 'Not Found'
+        });
+        return;
+    }
+    res.json({
+        "data": result,
+        "status": 'Success'
+    });
+})
 
 router.patch('/patch', async (req, res) => {
     const result = await IncreaseCounterWord(req.query.word.toUpperCase());
@@ -24,7 +35,6 @@ router.get('/search', async (req, res) => {
         resWordArray.push(res.resWord);
         resLangArray.push(res.resLang);
     });
-    console.log([resWordArray, resLangArray]);
     res.json([[resWordArray, resLangArray]]);
 });
 
