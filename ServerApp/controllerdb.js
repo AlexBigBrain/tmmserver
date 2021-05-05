@@ -2,48 +2,95 @@ const pool = require('./db');
 const { Observable } = require('rxjs');
 
 async function getParole(Parola) {
-    const [result,] = await pool.query('SELECT `generalWord` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
-    console.log(result);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `generalWord` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getParolaSPE(Parola) {
-    const [result,] = await pool.query('SELECT * FROM `Words` WHERE `specificWord` = ?;', [Parola]);
-    console.log('porco');
-    console.log(result);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT * FROM `Words` WHERE `specificWord` = ?;', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getDescrizioniIT(Parola) {
-    const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? and `LangDesc` LIKE \'%IT%\';', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? and `LangDesc` LIKE \'%IT%\';', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 
 async function getDescrizioniEN(Parola) {
-    const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? and `LangDesc` LIKE \'%EN%\';', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? and `LangDesc` LIKE \'%EN%\';', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getLingueParola(Parola) {
-    const [result,] = await pool.query('SELECT `Language` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `Language` FROM `Words` WHERE `specificWord` = ?;', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getEsempiIT(Parola) {
-    const [result,] = await pool.query('SELECT `Example`,`LangExample` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'IT\';', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `Example`,`LangExample` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'IT\';', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getEsempiEN(Parola) {
-    const [result,] = await pool.query('SELECT `Example`,`LangExample` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'EN\';', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `Example`,`LangExample` FROM `Examples` WHERE `specificWord` = ? and `LangExample` LIKE \'EN\';', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getSinonimi(Parola) {
-    const [result,] = await pool.query('SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ?;', [Parola, Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ?;', [Parola, Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getTraduzioniEN(Parola) {
-    const [result,] = await pool.query('SELECT `Translations`.`TR_wordEN_fk` as Translations FROM `Translations` WHERE `TR_wordIT_fk` = ?;', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `Translations`.`TR_wordEN_fk` as Translations FROM `Translations` WHERE `TR_wordIT_fk` = ?;', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 async function getTraduzioniIT(Parola) {
-    const [result,] = await pool.query('SELECT `Translations`.`TR_wordIT_fk` as Translations FROM `Translations` WHERE `TR_wordEN_fk` = ?;', [Parola]);
-    return result;
+    try {
+        const [result,] = await pool.query('SELECT `Translations`.`TR_wordIT_fk` as Translations FROM `Translations` WHERE `TR_wordEN_fk` = ?;', [Parola]);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 
 async function ParolaRequest_IT(Parola) {
@@ -69,29 +116,39 @@ async function ParolaRequest_EN(Parola) {
     console.log(ParoleTrovate);
     return await Promise.all(ParoleTrovate.map(async (Parola) => {
         return {
-            "Word": (await getParolaSPE(Parola.ScritturaGenerale)),
-            "Descriptions": (await getDescrizioniEN(Parola.ScritturaGenerale)),
-            "Examples": (await getEsempiEN(Parola.ScritturaGenerale)),
-            "Sinonims": (await getSinonimi(Parola.ScritturaGenerale)),
-            "Translations": (await getTraduzioniIT(Parola.ScritturaGenerale))
+            "Word": (await getParolaSPE(Parola.generalWord)),
+            "Descriptions": (await getDescrizioniEN(Parola.generalWord)),
+            "Examples": (await getEsempiEN(Parola.generalWord)),
+            "Sinonims": (await getSinonimi(Parola.generalWord)),
+            "Translations": (await getTraduzioniIT(Parola.generalWord))
         };
     }));
 }
 
 async function IncreaseCounterWord(Word) {
-    const result = await pool.execute(`
-                                        UPDATE \`Parole\`
-                                        SET \`NumeroRichieste\` = \`NumeroRichieste\` + 1
-                                        WHERE \`Parola\` = ?;`, [Word]);
-    return result[0].changedRows;
+    try {
+        const result = await pool.execute(`
+                                        UPDATE \`Words\`
+                                        SET \`RequestNumber\` = \`RequestNumber\` + 1
+                                        WHERE \`specificWord\` = ?;`, [Word]);
+        return result[0].changedRows;
+    }
+    catch {
+        return [];
+    }
 }
 
 async function SearchWords(Word) {
-    const result = await pool.execute(`
-                                        SELECT \`ScritturaGenerale\` AS resWord,\`Lingua\` AS resLang
-                                        FROM \`Parole\`
-                                        WHERE \`ScritturaGenerale\` LIKE ? LIMIT 10`, ['%' + Word + '%']);
-    return result;
+    try {
+        const result = await pool.execute(`
+                                        SELECT \`generalWord\` AS resWord,\`Language\` AS resLang
+                                        FROM \`Words\`
+                                        WHERE \`generalWord\` LIKE ? LIMIT 10`, ['%' + Word + '%']);
+        return result;
+    }
+    catch {
+        return [];
+    }
 }
 
 
