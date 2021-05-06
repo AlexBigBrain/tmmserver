@@ -81,6 +81,19 @@ async function getTranslationsIT(Word) {
     }
 }
 
+async function checkUsr(usr, psw) {
+    try {
+        const [result,] = await pool.query("select id from users where user = ? and psw = ?", [usr, psw]);
+        if(result.length > 0) {
+            return true;
+        }
+        return false;
+    }
+    catch {
+        return false;
+    }
+}
+
 async function ParolaRequest(GeneralWord) {
     let res = await getSpecificWord(GeneralWord);
     if (res.length === 0) {
@@ -162,5 +175,6 @@ module.exports = {
     InsertWord,
     ParolaRequest,
     SearchWords,
-    IncreaseCounterWord
+    IncreaseCounterWord,
+    checkUsr
 };
