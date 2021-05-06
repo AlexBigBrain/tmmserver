@@ -120,6 +120,15 @@ async function ParolaRequest(GeneralWord) {
     }));
 }
 
+async function InsertWord(Word, Language) {
+    try {
+        const result = await pool.execute('INSERT INTO `Words` (`specificWord`, `Language`) VALUES (?,?);', [Word, Language]);
+        return result[0].affectedRows;
+    }
+    catch {
+        return [];
+    }
+}
 
 async function IncreaseCounterWord(Word) {
     try {
@@ -150,6 +159,7 @@ async function SearchWords(Word) {
 
 
 module.exports = {
+    InsertWord,
     ParolaRequest,
     SearchWords,
     IncreaseCounterWord
