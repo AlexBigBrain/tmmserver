@@ -111,7 +111,9 @@ async function ParolaRequest(GeneralWord) {
         await Promise.all(Descriptions.map(async (Description) => {
             const resultExample = await getExamples(Description.descriptionID);
             if (resultExample.length !== 0)
-                Examples.push(resultExample);
+                resultExample.map((Example) => {
+                    Examples.push(Example);
+                });
         }));
         return {
             "Word": specificWords[0],
