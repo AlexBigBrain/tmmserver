@@ -15,8 +15,6 @@ router.get('', async (req, res) => {
         return;
     }
 
-    console.log(result);
-
     const usable = [];
     const unusable = [];
     let status = 'FoundWord';
@@ -34,7 +32,6 @@ router.get('', async (req, res) => {
         status = 'NotUsableWord';
     }
 
-    console.log(result);
     res.json({
         "data": {
             "usable": usable,
