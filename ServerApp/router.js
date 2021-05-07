@@ -5,34 +5,44 @@ const { SearchWords, IncreaseCounterWord, ParolaRequest, InsertWord } = require(
 const router = express.Router();
 
 router.get('', async (req, res) => {
-    const result = await ParolaRequest(req.query.word.toUpperCase());
+    let result = await ParolaRequest(req.query.word.toUpperCase());
     if (result.length === 0) {
+        const result = await InsertWord(req.query.word.toUpperCase(), null);
         res.json({
             "data": result,
-            "status": 'Not Found'
+            "status": 'AddedWord'
         });
         return;
     }
-    res.json({
-        "data": result,
-        "status": 'Success'
-    });
-})
 
-router.post('/add', async (req, res) => {
-    const result = await InsertWord(req.query.word.toUpperCase(), req.query.lang.toUpperCase());
+    console.log(result);
+
+    const usable = [];
+    const unusable = [];
+    let status = 'FoundWord';
+
+    await Promise.all(result.map(async (res) => {
+        if (res.Descriptions.length === 0) {
+            await IncreaseCounterWord(res.Word.specificWord);
+            unusable.push(res.Word.specificWord);
+            return;
+        }
+        usable.push(res);
+        return;
+    }));
+    if (usable.length === 0) {
+        status = 'NotUsableWord';
+    }
+
     console.log(result);
     res.json({
-        status: (result > 0)
+        "data": {
+            "usable": usable,
+            "unusable": unusable
+        },
+        "status": status
     });
-});
-
-router.patch('/patch', async (req, res) => {
-    const result = await IncreaseCounterWord(req.query.word.toUpperCase());
-    res.json({
-        status: (result > 0)
-    });
-});
+})
 
 router.get('/search', async (req, res) => {
     const [result,] = await SearchWords(req.query.word.toUpperCase());

@@ -30,6 +30,7 @@ async function getDescriptions(Word) {
         return [];
     }
 }
+
 /*
 async function getLingueParola(Parola) {
    try {
@@ -41,6 +42,7 @@ async function getLingueParola(Parola) {
    }
 }
 */
+
 async function getExamples(descriptionID) {
     try {
         const [result,] = await pool.query('SELECT `Example`, `LangExample`, `descriptionID` FROM `Examples` WHERE `descriptionID` = ? ORDER BY `descriptionID`;', [descriptionID]);
@@ -82,10 +84,12 @@ async function getTranslationsIT(Word) {
 }
 
 async function ParolaRequest(GeneralWord) {
-    let res = await getSpecificWord(GeneralWord);
-    if (res.length === 0) {
-        res = await getSpecificWords(GeneralWord);
+    const check = await getSpecificWord(GeneralWord);
+    console.log(check);
+    if (check.length === 0) {
+        InsertWord(GeneralWord, null);
     }
+    let res = await getSpecificWords(GeneralWord);
 
     const SpecificWordsArr = res;
     // Si utilizza 'Promise.all' perché 'ParoleTrovate.map()' restituisce una lista di Promises,
@@ -110,7 +114,7 @@ async function ParolaRequest(GeneralWord) {
                 Examples.push(resultExample[0]);
         }));
         return {
-            "Word": specificWords,
+            "Word": specificWords[0],
             "Descriptions": Descriptions,
             "Examples": Examples,
             "Sinonims": Sinonims,
