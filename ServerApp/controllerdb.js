@@ -84,12 +84,12 @@ async function getTranslationsIT(Word) {
 }
 
 async function ParolaRequest(GeneralWord) {
+    let res = await getSpecificWords(GeneralWord);
+
     const check = await getSpecificWord(GeneralWord);
-    console.log(check);
     if (check.length === 0) {
         InsertWord(GeneralWord, null);
     }
-    let res = await getSpecificWords(GeneralWord);
 
     const SpecificWordsArr = res;
     // Si utilizza 'Promise.all' perché 'ParoleTrovate.map()' restituisce una lista di Promises,
