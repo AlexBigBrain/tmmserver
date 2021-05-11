@@ -53,9 +53,19 @@ async function getExamples(descriptionID) {
     }
 }
 
-async function getSinonims(Word) {
+async function getSinonimsIT(Word) {
     try {
-        const [result,] = await pool.query('SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ?;', [Word, Word]);
+        const [result,] = await pool.query("SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? and `SinLang` IN ('IT') UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ? and `SinLang` IN ('IT');", [Word, Word]);
+        return result;
+    }
+    catch {
+        return [];
+    }
+}
+
+async function getSinonimsEN(Word) {
+    try {
+        const [result,] = await pool.query("SELECT `Sinonims`.`SI_wordB_fk` as Sinonims FROM `Sinonims` WHERE `SI_wordA_fk` = ? and `SinLang` LIKE '%EN%' UNION SELECT `Sinonims`.`SI_wordA_fk` FROM `Sinonims` WHERE `SI_wordB_fk` = ? and `SinLang` LIKE '%EN%';", [Word, Word]);
         return result;
     }
     catch {
@@ -99,11 +109,14 @@ async function ParolaRequest(GeneralWord) {
 
         const specificWords = await getSpecificWord(SpecificWord);
         const Descriptions = await getDescriptions(SpecificWord);
-        const resSinonims = await getSinonims(SpecificWord);
+        const resSinonimsIT = await getSinonimsIT(SpecificWord);
+        const resSinonimsEN = await getSinonimsEN(SpecificWord);
+
         const resTranslasionsIT = await getTranslationsIT(SpecificWord);
         const resTranslasionsEN = await getTranslationsEN(SpecificWord);
 
-        const Sinonims = await Promise.all(resSinonims.map(async (Sinonim) => Sinonim.Sinonims));
+        const SinonimsIT = await Promise.all(resSinonimsIT.map(async (Sinonim) => Sinonim.Sinonims));
+        const SinonimsEN = await Promise.all(resSinonimsEN.map(async (Sinonim) => Sinonim.Sinonims));
         const TranslasionsEN = await Promise.all(resTranslasionsEN.map(async (Translation) => Translation.Translations));
         const TranslasionsIT = await Promise.all(resTranslasionsIT.map(async (Translation) => Translation.Translations));
 
@@ -119,7 +132,8 @@ async function ParolaRequest(GeneralWord) {
             "Word": specificWords[0],
             "Descriptions": Descriptions,
             "Examples": Examples,
-            "Sinonims": Sinonims,
+            "SinonimsIT": SinonimsIT,
+            "SinonimsEN": SinonimsEN,
             "TranslasionsIT": TranslasionsIT,
             "TranslasionsEN": TranslasionsEN
         };
