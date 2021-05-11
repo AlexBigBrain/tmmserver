@@ -5,9 +5,23 @@ const { SearchWords, IncreaseCounterWord, ParolaRequest, InsertWord } = require(
 const router = express.Router();
 
 router.get('', async (req, res) => {
-    let result = await ParolaRequest(req.query.word.toUpperCase());
+
+    message = req.query.word.toUpperCase().split(' ').map((msg) => {
+        let onlyLettersArray = msg.split('').filter(char => /[A-Z]/.test(char));
+        return onlyLettersArray.join('');
+    }).join(' ');
+
+    if (message === '') {
+        res.json({
+            "data": [],
+            "status": 'Non hai passato nessuna parola'
+        });
+        return;
+    }
+
+    let result = await ParolaRequest(message);
     if (result.length === 0) {
-        const result = await InsertWord(req.query.word.toUpperCase(), null);
+        const result = await InsertWord(message, null);
         res.json({
             "data": result,
             "status": 'AddedWord'

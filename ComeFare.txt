@@ -1,6 +1,6 @@
-  git remote add origin https://github.com/AlexBigBrain/tmmserver.git
-  git branch -M master
-  git push -u origin master
+git remote add origin https://github.com/AlexBigBrain/tmmserver.git
+git branch -M master
+git push -u origin master
 
 heroku git:remote -a tmmserver3
 git add .
