@@ -14,7 +14,7 @@ router.get('', async (req, res) => {
     if (message === '') {
         res.json({
             "data": [],
-            "status": 'Non hai passato nessuna parola'
+            "status": 'NoWordPassed'
         });
         return;
     }
@@ -36,7 +36,7 @@ router.get('', async (req, res) => {
     await Promise.all(result.map(async (res) => {
         if (res.Descriptions.length === 0) {
             await IncreaseCounterWord(res.Word.specificWord);
-            unusable.push(res.Word.specificWord);
+            unusable.push([res.Word.specificWord, res.Word.RequestNumber]);
             return;
         }
         usable.push(res);
