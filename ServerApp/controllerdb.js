@@ -21,7 +21,6 @@ async function getSpecificWord(Word) {
     }
 }
 
-
 async function getDescriptions(Word) {
     try {
         const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? ORDER BY `LangDesc`,`descriptionID`;', [Word]);
