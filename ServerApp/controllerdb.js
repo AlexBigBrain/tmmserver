@@ -23,7 +23,7 @@ async function getSpecificWord(Word) {
 
 async function getDescriptions(Word) {
     try {
-        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? ORDER BY `descriptionID`;', [Word]);
+        const [result,] = await pool.query('SELECT * FROM `Descriptions` where `specificWord` = ? ORDER BY `LangDesc`,`descriptionID`;', [Word]);
         return result;
     }
     catch {
@@ -45,7 +45,7 @@ async function getLingueParola(Parola) {
 
 async function getExamples(descriptionID) {
     try {
-        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `descriptionID` FROM `Examples` WHERE `descriptionID` = ? ORDER BY `LangExample`;', [descriptionID]);
+        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `descriptionID` FROM `Examples` WHERE `descriptionID` = ? ORDER BY `LangExample`, `descriptionID`;', [descriptionID]);
         return result;
     }
     catch {
