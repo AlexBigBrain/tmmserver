@@ -45,7 +45,7 @@ async function getLingueParola(Parola) {
 
 async function getExamples(descriptionID) {
     try {
-        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `descriptionID` FROM `Examples` WHERE `descriptionID` = ? ORDER BY `descriptionID`;', [descriptionID]);
+        const [result,] = await pool.query('SELECT `Example`, `LangExample`, `descriptionID` FROM `Examples` WHERE `descriptionID` = ? ORDER BY `LangExample`;', [descriptionID]);
         return result;
     }
     catch {
